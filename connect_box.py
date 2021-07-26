@@ -1,14 +1,11 @@
 import psycopg2
 import os
 import json
-import asyncio
-from time import time
+import threading
 
 class ConnectionBase():
     """"Class connection base"""
     
-
-
     def __init__(self) -> None:
         self.__load_config()
         self.connection = psycopg2.connect(
@@ -44,11 +41,6 @@ class ConnectionPool():
         self.list_connection = {ConnectionBase(): False for _ in range(self._start_user_connect)}
         self.__max_user_connect = 100
         self.__max_free_connect = 5
-        self.time_start = time()
-        #self.loop()
-
-    async def loop(self) -> None:
-        pass
 
     def __add_new_connect(self):
         """"Add new connect to data base"""
