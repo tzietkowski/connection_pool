@@ -7,24 +7,20 @@ from time import time
 class ConnectionBase():
     """"Class connection base"""
     
-    count_connect = 0
+
 
     def __init__(self) -> None:
         self.__load_config()
-        ConnectionBase.count_connect +=1 
-        self.numer_connect = ConnectionBase.count_connect
         self.connection = psycopg2.connect(
                                 host="localhost",
                                 database = self.__db_name,
                                 user = self.__user_db,
                                 password = self.__pass_db)
         self.cursor = self.connection.cursor()
-        
 
     def __del__(self) -> None:
         self.cursor.close()
         self.connection.close()
-        ConnectionBase.count_connect -=1 
 
     def __load_config(self) -> None:
         """Load config parameters"""
@@ -51,11 +47,8 @@ class ConnectionPool():
         self.time_start = time()
         #self.loop()
 
-    def loop(self) -> None:
-        while True:
-            pass
-            #self.__add_new_connect()
-            #self.__del_connect()
+    async def loop(self) -> None:
+        pass
 
     def __add_new_connect(self):
         """"Add new connect to data base"""
@@ -107,15 +100,3 @@ class ConnectionPool():
 
 k = ConnectionPool()
 print(k.list_connection)
-print(k.del_connect())
-print(k.list_connection)
-
-#print(k.list_connection.values())
-
-#g = k.get_connect()
-#print(k.list_connection)
-
-#print(k.put_connect(g))
-#print(k.list_connection)
-
-#print(k.count_free_connect())
