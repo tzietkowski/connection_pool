@@ -2,6 +2,7 @@ import psycopg2
 import os
 import json
 import threading
+import time
 
 
 lock = threading.Lock()
@@ -49,7 +50,7 @@ class ConnectionPool():
         self.list_connection = {ConnectionBase(): False for _ in range(self._start_user_connect)}
         self.__max_user_connect = 100
         self.__max_free_connect = 5
-        self.count = self.__count_free_connect()
+        
 
     def __add_new_connect(self) -> None:
         """"Add new connect to data base"""
@@ -61,7 +62,6 @@ class ConnectionPool():
         """Delete not use connect"""
 
         while self.__count_free_connect() > self.__max_free_connect:
-            print('usuwam')
             del self.list_connection[self.__check_no_busy_connect()]
 
 
@@ -69,9 +69,6 @@ class ConnectionPool():
         """Check no busy connect - return index"""
 
         for value in self.list_connection.items():
-            if value[0].connection == None:
-                print('ok')
-            
             if value[1] == False and value[0].connection != None:
                 return value[0]
         return None
@@ -85,24 +82,25 @@ class ConnectionPool():
     def get_connect(self) -> ConnectionBase:
         """Get connect to data base"""
         global lock
-
-        lock.acquire()
-        
-        free_socket = self.__check_no_busy_connect()
-        if free_socket != -1:
-            self.list_connection[free_socket] = True
-       
-        self.count = self.__count_free_connect()
-        if self.__count_free_connect()  < self.__max_free_connect:
-            self.__add_new_connect()
-        lock.release()
-        return free_socket
+        while True:
+            lock.acquire()
+            free_socket = self.__check_no_busy_connect()
+            if free_socket != -1:
+                self.list_connection[free_socket] = True
+            if self.__count_free_connect()  < self.__max_free_connect:
+                self.__add_new_connect()
+            lock.release()
+            if free_socket == None:
+                print('asf')
+                time.sleep(1)
+            if free_socket != None:
+                return free_socket
 
 
     def put_connect(self, connect:ConnectionBase) -> None:
         """Put connection"""
 
         self.list_connection[connect] = False
-        while self.__count_free_connect()  > self.__max_free_connect:
-            self.__del_connect()
+        #while self.__count_free_connect()  > self.__max_free_connect:
+        self.__del_connect()
         
